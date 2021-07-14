@@ -138,6 +138,9 @@ smoothed_tumor_spectra = conv(mySample.tumor_spectra, [1 1 1 1 1 1 1 1] ./ 8);
 [Y, I_471] = min(abs((mySample.wavelengths - 471))); %I_x is index of wavelength nearest to x
 [Y, I_576] = min(abs((mySample.wavelengths - 576))); %I_x is index of wavelength nearest to x
 
+[Y, I_max] = max(mySample.healthy_spectra - mySample.tumor_spectra);
+[Y, I_min] = min(mySample.healthy_spectra - mySample.tumor_spectra);
+
 
 mySpectra = mySample.acquired_spectra_series(1).spectra;
 
@@ -145,10 +148,19 @@ min1 = mySpectra(I_500) / mySpectra(I_545);
 min2 = mySpectra(I_500) / mySpectra(I_575);
 min3 = mySpectra(I_471) - mySpectra(I_576);
 
+min4 = mySpectra(I_500) / mySpectra(I_max);
+min5 = mySpectra(I_500) / mySpectra(I_min);
+
+
 line1 = zeros(1,num_pts);
 line2 = zeros(1,num_pts);
 line3 = zeros(1,num_pts);
 x_pos = zeros(1,num_pts);
+
+line4 = zeros(1,num_pts);
+line5 = zeros(1,num_pts);
+red_rms_line = zeros(1, num_pts);
+blue_rms_line = zeros(1, num_pts);
 
 for k = 1:num_pts
     %subplot(ceil(num_pts/2), 2,k);
@@ -168,6 +180,12 @@ for k = 1:num_pts
 
     %scatter(x_pos, mySpectra(I_471) - mySpectra(I_576) - min3, 'yellow');
     line3(k) = mySpectra(I_471) - mySpectra(I_576) - min3;
+    
+    line4(k) = mySpectra(I_500) / mySpectra(I_max) - min4;
+    line5(k) = mySpectra(I_500) / mySpectra(I_min) - min5;
+    red_rms_line(k) = sqrt((sum((mySample.tumor_spectra.' - mySpectra).^2)) ./ max(size(mySample.tumor_spectra)));
+    blue_rms_line(k) = sqrt((sum((mySample.healthy_spectra.' - mySpectra).^2)) ./ max(size(mySample.healthy_spectra)));
+
 end
 
 % Also remember to change raster graph to reflect real spot size, find
@@ -206,10 +224,11 @@ figure;
 P1 = patch([0 x1_spot x1_spot 0],[0 0 10 10], 'cyan'); set(P1,'facealpha',0.3); hold on;
 P2 = patch([x1_spot x2_spot x2_spot x1_spot],[0 0 10 10], 'magenta'); set(P2,'facealpha',0.3); hold on;
 
-plot(x_pos, line1, 'blue'); hold on;
-plot(x_pos, line2, 'green');
-plot(x_pos, line3, 'red');
-% xline(midpt_line1, 'yellow');
+% plot(x_pos, line1, 'blue'); hold on;
+% plot(x_pos, line2, 'green');
+% plot(x_pos, line3, 'red');
+plot(x_pos, line4, 'blue'); hold on;
+plot(x_pos, line5, 'red');
 xline(predict_bounds_d_line1, 'yellow');
 
 P3 = patch([x2_spot 40 40 x2_spot],[0 0 10 10], 'cyan'); set(P3,'facealpha',0.3); hold on;
@@ -227,5 +246,12 @@ plot(x_pos, line1); hold on;
 % xline(midpt_line1)
 plot(x_pos, d_line1)
 xline(predict_bounds_d_line1)
+
+figure();
+plot(x_pos, red_rms_line, 'r-', x_pos, blue_rms_line, 'b-'); hold on;
+xline(x1_spot)
+% plot(x_pos, abs(red_rms_line - blue_rms_line))
+% intersection = x_pos(abs(red_rms_line - blue_rms_line) == min(abs(red_rms_line - blue_rms_line))) % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
+
 
 return
