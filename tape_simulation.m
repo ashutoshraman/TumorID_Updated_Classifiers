@@ -27,17 +27,11 @@ thickness = mySample.thickness;
 custom_lesion = create_lesion(mySample.state, length, width, thickness, 'square');
 mySample.tumor_state = custom_lesion;
 
-% mySample.state(length/4:length/4 + length/2, width/4:width/4 + width/2) = thickness / 2; %carve out square of half of depth
-% mySample.tumor_state = mySample.state;  % change this and above line to make circular lesion
+
 I = find(mySample.tumor_state == thickness);
 mySample.tumor_state(:,:) = thickness;
 mySample.tumor_state(I) = NaN;
 
-% step_size_array = [1, .9, .8, .7, .6, .5, .4, .3, .2, .1, .01];
-% int_time_array = [1, 10, 20, 30]
-% d_error = zeros(size(step_size_array));
-% for i = 1 : max(size(step_size_array))
-    
 
 %Create a scan path
 L = 1; %length (mm)
@@ -52,13 +46,6 @@ myScanPath = cut_path_obj('raster', default_args);
 loc = [10.8,20];
 myScanPath.set_location(loc); %center of mySampleopen
 
-% %Create a scan path
-% myScanPath = cut_path_obj('empty', -1);
-% myScanPath.set_x_points([5  10 20 20 28 32]);
-% myScanPath.set_y_points([20 10 20 30 25 15]);
-% myScanPath.p_points = [80 80 80 80 80 80];
-% myScanPath.t_points = [0.1 0.2 0.3 0.4 0.5 0.6];
-% %myScanPath.set_location([0,0]); %center of mySample
 
 %Pre allocate space for acquired spectra
 num_pts = max(size(myScanPath.t_points));
@@ -105,38 +92,12 @@ xlabel('Width (mm) [X]','FontSize',15);
 smoothed_healthy_spectra = conv(mySample.healthy_spectra, [1 1 1 1 1 1 1 1] ./ 8);
 smoothed_tumor_spectra = conv(mySample.tumor_spectra, [1 1 1 1 1 1 1 1] ./ 8);
 
-% H = figure; %for the spectra
-% for k = 1:num_pts
-%     %subplot(ceil(num_pts/2), 2,k);
-%     figure(H); H.clo;
-%     plot(mySample.wavelengths, smoothed_healthy_spectra(8:end), 'k');
-%     hold on;
-%     plot(mySample.wavelengths, smoothed_tumor_spectra(8:end), 'g');
-%     smoothed_spectra = conv(mySample.acquired_spectra_series(k).spectra, [1 1 1 1 1 1 1 1] ./ 8);
-%     plot(mySample.wavelengths, smoothed_spectra(8:end), '--r');
-%     title(sprintf('Spectra %d', k));
-%     ylabel('Normalized Itensity A.U. (500nm -> 1.0)', 'FontSize', 15);
-%     legend({'Healthy','Tumor','Acquired'},'FontSize',15);
-%     xlabel('Wavelengths (nm)', 'FontSize', 15);
-%     axis([0 1200 0 1.5]);
-%     pause
-% end
 
 [Y, I_500] = min(abs((mySample.wavelengths - 500))); %I_x is index of wavelength nearest to x
 [Y, I_545] = min(abs((mySample.wavelengths - 545))); %I_x is index of wavelength nearest to x
 [Y, I_575] = min(abs((mySample.wavelengths - 575))); %I_x is index of wavelength nearest to x
-
-%max ratio change between healthy and tumor between 475 and 700nm only
-[Y, I_527] = min(abs((mySample.wavelengths - 527))); %I_x is index of wavelength nearest to x
-[Y, I_687] = min(abs((mySample.wavelengths - 687))); %I_x is index of wavelength nearest to x
-
-%max intensity change between healthy and tumor between 475 and 700nm only
-[Y, I_527] = min(abs((mySample.wavelengths - 527))); %I_x is index of wavelength nearest to x
 [Y, I_576] = min(abs((mySample.wavelengths - 576))); %I_x is index of wavelength nearest to x
-
-%max difference
 [Y, I_471] = min(abs((mySample.wavelengths - 471))); %I_x is index of wavelength nearest to x
-[Y, I_576] = min(abs((mySample.wavelengths - 576))); %I_x is index of wavelength nearest to x
 
 [Y, I_max] = max(mySample.healthy_spectra - mySample.tumor_spectra);
 [Y, I_min] = min(mySample.healthy_spectra - mySample.tumor_spectra);
@@ -167,18 +128,10 @@ for k = 1:num_pts
     mySpectra = mySample.acquired_spectra_series(k).spectra;
     x_pos(k) = mySample.acquired_spectra_series(k).pts_xy(1);
 
-    %scatter(x_pos, mySpectra(I_500) / mySpectra(I_545) - min1,'blue'); hold on; %make this more important
     line1(k) = mySpectra(I_500) / mySpectra(I_545) - min1;
 
-    %scatter(x_pos, mySpectra(I_500) / mySpectra(I_575) - min2, 'red');
     line2(k) = mySpectra(I_500) / mySpectra(I_575) - min2;
 
-    %scatter(x_pos, mean(mySpectra(I_425:I_750)),'green');
-    %scatter(x_pos, mySpectra(I_527) / mySpectra(I_687), 'yellow');
-    %scatter(x_pos, mySpectra(I_527)/mySpectra(I_687), 'magenta');
-
-
-    %scatter(x_pos, mySpectra(I_471) - mySpectra(I_576) - min3, 'yellow');
     line3(k) = mySpectra(I_471) - mySpectra(I_576) - min3;
     
     line4(k) = mySpectra(I_500) / mySpectra(I_max) - min4;
@@ -194,9 +147,9 @@ chord_length = real((2*sqrt(((length/myArgs.resolution)/4)^2 - (loc(2) - 20)^2))
 x1_spot = 20 - chord_length/2;
 x2_spot = 20 + chord_length/2;
 
-midpt_line1 = (x_pos(find(line1==max(line1),1))+ x_pos(find(round(line1,10),1)-1))/2;
-midpt_line2 = (x_pos(find(line2==max(line2),1))+ x_pos(find(round(line2,10),1)-1))/2;
-midpt_line3 = (x_pos(find(line3==max(line3),1))+ x_pos(find(round(line3,10),1)-1))/2;
+% midpt_line1 = (x_pos(find(line1==max(line1),1))+ x_pos(find(round(line1,10),1)-1))/2;
+% midpt_line2 = (x_pos(find(line2==max(line2),1))+ x_pos(find(round(line2,10),1)-1))/2;
+% midpt_line3 = (x_pos(find(line3==max(line3),1))+ x_pos(find(round(line3,10),1)-1))/2;
 
 d_line1 = gradient(line1,x_pos);
 d_line2 = gradient(line2,x_pos);
@@ -210,22 +163,13 @@ predict_bounds_d_line2 = [x_pos(find(d_line2==max(d_line2))), x_pos(find(d_line2
 predict_bounds_d_line3 = [x_pos(find(d_line3==max(d_line3))), x_pos(find(d_line3==min(d_line3)))];
 
 predict_bounds_d_line4 = [x_pos(find(d_line4==max(d_line4))), x_pos(find(d_line4==min(d_line4)))];
-predict_bounds_d_line5 = [x_pos(find(d_line5==max(d_line5))), x_pos(find(d_line5==min(d_line5)))];
+predict_bounds_d_line5 = [x_pos(find(d_line5==min(d_line5))), x_pos(find(d_line5==max(d_line5)))];
 
 
 midpt_error = midpt_line1 - x1_spot;
-d_error = predict_bounds_d_line3(1) - x1_spot
 d_error = predict_bounds_d_line4(1) - x1_spot
+d_error = predict_bounds_d_line5(1) - x1_spot
 
-% d_error(i) = predict_bounds_d_line3(1) - x1_spot
-
-% end
-
-% figure();
-% plot(step_size_array, abs(d_error), 'k-')
-% xlabel('Step Size (mm between Laser Spots)')
-% ylabel('Predicted Boundary Error from Ground Truth (mm)')
-% title('Error vs. Step Size for TumorID Laser Path')
 
 set(groot,'defaultLineLineWidth',1.2)
 
@@ -233,12 +177,10 @@ figure;
 P1 = patch([0 x1_spot x1_spot 0],[0 0 10 10], 'cyan'); set(P1,'facealpha',0.3); hold on;
 P2 = patch([x1_spot x2_spot x2_spot x1_spot],[0 0 10 10], 'magenta'); set(P2,'facealpha',0.3); hold on;
 
-% plot(x_pos, line1, 'blue'); hold on;
-% plot(x_pos, line2, 'green');
-% plot(x_pos, line3, 'red');
+
 plot(x_pos, line4, 'blue'); hold on;
 plot(x_pos, line5, 'red');
-xline(predict_bounds_d_line1, 'yellow');
+xline(predict_bounds_d_line5, 'yellow');
 
 P3 = patch([x2_spot 40 40 x2_spot],[0 0 10 10], 'cyan'); set(P3,'facealpha',0.3); hold on;
 %title('Tumor Edge Detection (center is tumor)','FontSize',15);
@@ -251,16 +193,19 @@ title('Step Size of .9mm')
 
 
 figure();
-plot(x_pos, line1); hold on;
-% xline(midpt_line1)
-plot(x_pos, d_line1)
-xline(predict_bounds_d_line1)
+plot(x_pos, line4); hold on;
+plot(x_pos, d_line4)
+xline(predict_bounds_d_line4)
 
 figure();
 plot(x_pos, red_rms_line, 'r-', x_pos, blue_rms_line, 'b-'); hold on;
-xline(x1_spot)
+xline(x1_spot); hold on;
 % plot(x_pos, abs(red_rms_line - blue_rms_line))
-% intersection = x_pos(abs(red_rms_line - blue_rms_line) == min(abs(red_rms_line - blue_rms_line))) % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
-
+% plot(x_pos, gradient(abs(red_rms_line - blue_rms_line), x_pos))
+% rms_collision = gradient(abs(red_rms_line - blue_rms_line), x_pos);
+% x_rms_min = x_pos(find(rms_collision == 0 & round(gradient(rms_collision, x_pos), 4) ~= 0));
+% intersection_min = x_rms_min - x1_spot
+intersection = mean(x_pos(round(abs(red_rms_line - blue_rms_line), 4) == round(min(abs(red_rms_line - blue_rms_line)), 4))) - x1_spot % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
+xline(intersection+x1_spot, 'green')
 
 return

@@ -202,12 +202,21 @@ d_line1 = gradient(line1,x_pos);
 d_line2 = gradient(line2,x_pos);
 d_line3 = gradient(line3,x_pos);
 
+d_line4 = gradient(line4, x_pos);
+d_line5 = gradient(line5, x_pos);
+
 predict_bounds_d_line1 = [x_pos(find(d_line1==max(d_line1))), x_pos(find(d_line1==min(d_line1)))];
 predict_bounds_d_line2 = [x_pos(find(d_line2==max(d_line2))), x_pos(find(d_line2==min(d_line2)))];
 predict_bounds_d_line3 = [x_pos(find(d_line3==max(d_line3))), x_pos(find(d_line3==min(d_line3)))];
 
+predict_bounds_d_line4 = [x_pos(find(d_line4==max(d_line4))), x_pos(find(d_line4==min(d_line4)))];
+predict_bounds_d_line5 = [x_pos(find(d_line5==max(d_line5))), x_pos(find(d_line5==min(d_line5)))];
+
+
 midpt_error = midpt_line1 - x1_spot;
 d_error = predict_bounds_d_line3(1) - x1_spot
+d_error = predict_bounds_d_line4(1) - x1_spot
+
 % d_error(i) = predict_bounds_d_line3(1) - x1_spot
 
 % end
@@ -251,7 +260,7 @@ figure();
 plot(x_pos, red_rms_line, 'r-', x_pos, blue_rms_line, 'b-'); hold on;
 xline(x1_spot)
 % plot(x_pos, abs(red_rms_line - blue_rms_line))
-% intersection = x_pos(abs(red_rms_line - blue_rms_line) == min(abs(red_rms_line - blue_rms_line))) % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
+intersection = mean(x_pos(round(abs(red_rms_line - blue_rms_line), 4) == round(min(abs(red_rms_line - blue_rms_line)), 4))) - x1_spot % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
 
 
 return
