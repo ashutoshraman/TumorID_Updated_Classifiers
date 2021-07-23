@@ -36,15 +36,15 @@ mySample.tumor_state(I) = NaN;
 
 %Create a scan path
 L = 1; %length (mm)
-W = 3.6; %width (mm)
+W = 30; %width (mm)
 d = 1.75; %beam width (mm)
 alpha = 1.0; %step size in terms of r between raster cuts
 dir = 'x'; %direction of cuts 'x' or 'y';
-int_time =.8; %W (mm) divided by integration time (s) gives
-step_size = .01; %.1 step size (mm between points) is converted to points per mm through 1/step_size
+int_time =.25; %W (mm) divided by integration time (s) gives
+step_size = .1; %.1 step size (mm between points) is converted to points per mm through 1/step_size
 default_args = {L,W,d,alpha,dir,int_time,step_size};
 myScanPath = cut_path_obj('raster', default_args);
-loc = [10.8,20];
+loc = [20,20];
 myScanPath.set_location(loc); %center of mySampleopen
 
 % %Create a scan path
@@ -241,11 +241,11 @@ plot(x_pos, line1); hold on;
 plot(x_pos, d_line1)
 xline(predict_bounds_d_line1)
 
-figure();
-plot(x_pos, red_rms_line, 'r-', x_pos, blue_rms_line, 'b-'); hold on;
-xline(x1_spot)
-% plot(x_pos, abs(red_rms_line - blue_rms_line))
-intersection = mean(x_pos(round(abs(red_rms_line - blue_rms_line), 4) == round(min(abs(red_rms_line - blue_rms_line)), 4))) - x1_spot % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
+% figure();
+% plot(x_pos, red_rms_line, 'r-', x_pos, blue_rms_line, 'b-'); hold on;
+% xline(x1_spot)
+% % plot(x_pos, abs(red_rms_line - blue_rms_line))
+% intersection = mean(x_pos(round(abs(red_rms_line - blue_rms_line), 4) == round(min(abs(red_rms_line - blue_rms_line)), 4))) - x1_spot % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
 
 
 return
