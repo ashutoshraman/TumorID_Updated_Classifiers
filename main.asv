@@ -12,11 +12,11 @@ mySample = sample405(myArgs); %mySample is instance of sample405 class, with myA
 mySample.set_laser(myLaser); %mySample method of set_laser with myLaser instance as arg (class within class)
 
 %set spectra
-load('blue_spectra'); % this is where you load red (tumor) and blue (healthy) spectra
-load('red_spectra');
+load('mean_healthy_spectra'); % this is where you load red (tumor) and blue (healthy) spectra
+load('mean_tumor_spectra');
 load('wavelengths');
-mySample.tumor_spectra = red_spectra(:, 2);
-mySample.healthy_spectra = blue_spectra(:, 2);
+mySample.tumor_spectra = mean_tumor_spectra;
+mySample.healthy_spectra = mean_healthy_spectra;
 mySample.wavelengths = wavelengths;
                                     
 %Create hole for tumor and fill it w/ Tumor
@@ -24,7 +24,7 @@ length = max(size(mySample.x_coord));
 width = max(size(mySample.y_coord));
 thickness = mySample.thickness;
 
-custom_lesion = create_lesion(mySample.state, length, width, thickness, 'square');
+custom_lesion = create_lesion(mySample.state, length, width, thickness, 'circle');
 mySample.tumor_state = custom_lesion;
 
 % mySample.state(length/4:length/4 + length/2, width/4:width/4 + width/2) = thickness / 2; %carve out square of half of depth
@@ -33,11 +33,6 @@ I = find(mySample.tumor_state == thickness);
 mySample.tumor_state(:,:) = thickness;
 mySample.tumor_state(I) = NaN;
 
-% step_size_array = [1, .9, .8, .7, .6, .5, .4, .3, .2, .1, .01];
-% int_time_array = [1, 10, 20, 30]
-% d_error = zeros(size(step_size_array));
-% for i = 1 : max(size(step_size_array))
-    
 
 %Create a scan path
 L = 1; %length (mm)
@@ -138,8 +133,8 @@ smoothed_tumor_spectra = conv(mySample.tumor_spectra, [1 1 1 1 1 1 1 1] ./ 8);
 [Y, I_471] = min(abs((mySample.wavelengths - 471))); %I_x is index of wavelength nearest to x
 [Y, I_576] = min(abs((mySample.wavelengths - 576))); %I_x is index of wavelength nearest to x
 
-[Y, I_max] = max(mySample.healthy_spectra - mySample.tumor_spectra);
-[Y, I_min] = min(mySample.healthy_spectra - mySample.tumor_spectra);
+% [Y, I_max] = max(mySample.healthy_spectra - mySample.tumor_spectra);
+% [Y, I_min] = min(mySample.healthy_spectra - mySample.tumor_spectra);
 
 
 mySpectra = mySample.acquired_spectra_series(1).spectra;
@@ -148,8 +143,8 @@ min1 = mySpectra(I_500) / mySpectra(I_545);
 min2 = mySpectra(I_500) / mySpectra(I_575);
 min3 = mySpectra(I_471) - mySpectra(I_576);
 
-min4 = mySpectra(I_500) / mySpectra(I_max);
-min5 = mySpectra(I_500) / mySpectra(I_min);
+% min4 = mySpectra(I_500) / mySpectra(I_max);
+% min5 = mySpectra(I_500) / mySpectra(I_min);
 
 
 line1 = zeros(1,num_pts);
@@ -157,10 +152,10 @@ line2 = zeros(1,num_pts);
 line3 = zeros(1,num_pts);
 x_pos = zeros(1,num_pts);
 
-line4 = zeros(1,num_pts);
-line5 = zeros(1,num_pts);
-red_rms_line = zeros(1, num_pts);
-blue_rms_line = zeros(1, num_pts);
+% line4 = zeros(1,num_pts);
+% line5 = zeros(1,num_pts);
+% red_rms_line = zeros(1, num_pts);
+% blue_rms_line = zeros(1, num_pts);
 
 for k = 1:num_pts
     %subplot(ceil(num_pts/2), 2,k);
@@ -179,12 +174,12 @@ for k = 1:num_pts
 
 
     %scatter(x_pos, mySpectra(I_471) - mySpectra(I_576) - min3, 'yellow');
-    line3(k) = mySpectra(I_471) - mySpectra(I_576) - min3;
-    
-    line4(k) = mySpectra(I_500) / mySpectra(I_max) - min4;
-    line5(k) = mySpectra(I_500) / mySpectra(I_min) - min5;
-    red_rms_line(k) = sqrt((sum((mySample.tumor_spectra.' - mySpectra).^2)) ./ max(size(mySample.tumor_spectra)));
-    blue_rms_line(k) = sqrt((sum((mySample.healthy_spectra.' - mySpectra).^2)) ./ max(size(mySample.healthy_spectra)));
+%     line3(k) = mySpectra(I_471) - mySpectra(I_576) - min3;
+%     
+%     line4(k) = mySpectra(I_500) / mySpectra(I_max) - min4;
+%     line5(k) = mySpectra(I_500) / mySpectra(I_min) - min5;
+%     red_rms_line(k) = sqrt((sum((mySample.tumor_spectra.' - mySpectra).^2)) ./ max(size(mySample.tumor_spectra)));
+%     blue_rms_line(k) = sqrt((sum((mySample.healthy_spectra.' - mySpectra).^2)) ./ max(size(mySample.healthy_spectra)));
 
 end
 
@@ -202,15 +197,15 @@ d_line1 = gradient(line1,x_pos);
 d_line2 = gradient(line2,x_pos);
 d_line3 = gradient(line3,x_pos);
 
-d_line4 = gradient(line4, x_pos);
-d_line5 = gradient(line5, x_pos);
+% d_line4 = gradient(line4, x_pos);
+% d_line5 = gradient(line5, x_pos);
 
 predict_bounds_d_line1 = [x_pos(find(d_line1==max(d_line1))), x_pos(find(d_line1==min(d_line1)))];
 predict_bounds_d_line2 = [x_pos(find(d_line2==max(d_line2))), x_pos(find(d_line2==min(d_line2)))];
 predict_bounds_d_line3 = [x_pos(find(d_line3==max(d_line3))), x_pos(find(d_line3==min(d_line3)))];
 
-predict_bounds_d_line4 = [x_pos(find(d_line4==max(d_line4))), x_pos(find(d_line4==min(d_line4)))];
-predict_bounds_d_line5 = [x_pos(find(d_line5==max(d_line5))), x_pos(find(d_line5==min(d_line5)))];
+% predict_bounds_d_line4 = [x_pos(find(d_line4==max(d_line4))), x_pos(find(d_line4==min(d_line4)))];
+% predict_bounds_d_line5 = [x_pos(find(d_line5==max(d_line5))), x_pos(find(d_line5==min(d_line5)))];
 
 
 midpt_error = midpt_line1 - x1_spot;
@@ -260,7 +255,7 @@ figure();
 plot(x_pos, red_rms_line, 'r-', x_pos, blue_rms_line, 'b-'); hold on;
 xline(x1_spot)
 % plot(x_pos, abs(red_rms_line - blue_rms_line))
-% intersection = x_pos(abs(red_rms_line - blue_rms_line) == min(abs(red_rms_line - blue_rms_line))) % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
+intersection = mean(x_pos(round(abs(red_rms_line - blue_rms_line), 4) == round(min(abs(red_rms_line - blue_rms_line)), 4))) - x1_spot % how to to fit curve so that i get true intersection? currently gives me closest val to intersection.
 
 
 return
