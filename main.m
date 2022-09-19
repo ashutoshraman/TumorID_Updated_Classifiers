@@ -7,7 +7,7 @@ spot_size = .75; %mm  %% make this .75 and find how to make loop go through
 myLaser = laser405(laser_power, spot_size); %myLaser is instance of laser405
 myArgs.length = 40; %mm   % myArgs is a data struct array with length and width as args
 myArgs.width = 40; %mm
-myArgs.resolution = 100
+myArgs.resolution = 100;
 mySample = sample405(myArgs); %mySample is instance of sample405 class, with myArgs struct
 mySample.set_laser(myLaser); %mySample method of set_laser with myLaser instance as arg (class within class)
 
